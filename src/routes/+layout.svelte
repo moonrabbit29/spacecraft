@@ -2,11 +2,16 @@
 	import 'bootstrap/dist/css/bootstrap.min.css';
 	import { fade } from 'svelte/transition';
 	import { Row, Col, Container } from '@sveltestrap/sveltestrap';
-	let active_tab = $state(1);
+	import { currentHomePage } from '$lib/stores/HomePageStore.js';
+	import { page } from '$app/state';
 
+	const getCurrentPage = page; // declare $page for rune usage
+	const currentPath = $derived(getCurrentPage.url.pathname);
+	let active_tab = $state(1);
 	let { children } = $props();
 </script>
 
+{#if $currentHomePage === 0 || currentPath!="/"}
 <div class="nav-bar">
 	<Container fluid class="py-2 px-5">
 		<Row class="d-flex justify-content-between align-item-center">
@@ -65,6 +70,7 @@
 		</Row>
 	</Container>
 </div>
+{/if}
 {@render children()}
 
 <style>
