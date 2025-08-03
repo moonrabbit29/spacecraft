@@ -5,19 +5,52 @@
 	import { currentHomePage } from '$lib/stores/HomePageStore.js';
 	import { fly, fade } from 'svelte/transition';
 	import Marquee from 'svelte-fast-marquee';
+	import { onMount, onDestroy, afterUpdate } from 'svelte';
 
 	let isScrolling = false;
 	let listOfPartner = ['customer_list/tbd-1.png', 'customer_list/tbd-2.png'];
+	let isAtTopPage2 = false;
+	let topSentinel: HTMLDivElement;
+	let observer: IntersectionObserver;
+
+	onMount(() => {
+		observer = new IntersectionObserver(
+			([entry]) => {
+				isAtTopPage2 = entry.isIntersecting;
+				console.log(isAtTopPage2);
+			},
+			{ threshold: 1 }
+		); // 100% visible
+
+		if (topSentinel) observer.observe(topSentinel);
+	});
+
+	onDestroy(() => {
+		if (topSentinel) observer.unobserve(topSentinel);
+	});
+
+	afterUpdate(() => {
+		if ($currentHomePage === 1 && topSentinel) {
+			observer?.disconnect(); 
+			observer.observe(topSentinel);
+		}
+	});
+
 	function handleScroll(event: WheelEvent) {
-		event.preventDefault();
 		if (isScrolling) {
 			event.preventDefault();
 			return;
 		}
 		isScrolling = true;
 		currentHomePage.update((n) => {
-			if (event.deltaY > 0 && n < 1) return n + 1;
-			if (event.deltaY < 0 && n > 0) return n - 1;
+			if (event.deltaY > 0 && n < 1) {
+				event.preventDefault();
+				return n + 1;
+			}
+			if (event.deltaY < 0 && n > 0 && isAtTopPage2) {
+				event.preventDefault();
+				return n - 1;
+			}
 			return n;
 		});
 
@@ -46,35 +79,71 @@
 			</div>
 		</div>
 	{:else}
-		<div style="height: 50px;"></div>
-		<div class="client-list">
-			<Container>
-				<Row>
-					<Col class="d-flex justify-content-center">
-						<div class="medium-text">Guided by the stars, grounded in purpose</div>
-					</Col>
-				</Row>
-				<Row style="margin-top:50px">
-					<Col md={{ size: 10, offset: 1 }}>
-						<div class="marquee">
-							<div class="overlay left"></div>
-							<Marquee pauseOnHover={true} speed={50}>
-								{#each Array(4) as _, i}
-									{#each listOfPartner as item}
-										<div class="customer-logo-container">
-											<img class="customer-logo" src={item} alt="customer-logo" />
-										</div>
+		<div class="page2">
+			<div style="height: 50px;" bind:this={topSentinel}></div>
+			<div class="client-list">
+				<Container>
+					<Row>
+						<Col class="d-flex justify-content-center">
+							<div class="smaller-text">Guided by the stars, grounded in purpose</div>
+						</Col>
+					</Row>
+					<Row style="margin-top:50px">
+						<Col md={{ size: 8, offset: 2 }}>
+							<div class="marquee">
+								<div class="overlay left"></div>
+								<Marquee pauseOnHover={true} speed={50}>
+									{#each Array(4) as _, i}
+										{#each listOfPartner as item}
+											<div class="customer-logo-container">
+												<img class="customer-logo" src={item} alt="customer-logo" />
+											</div>
+										{/each}
 									{/each}
-								{/each}
-							</Marquee>
-							<div class="overlay right"></div>
-						</div></Col
-					>
-				</Row>
-			</Container>
-		</div>
-		<div class="our-latest-project">
-			
+								</Marquee>
+								<div class="overlay right"></div>
+							</div></Col
+						>
+					</Row>
+				</Container>
+			</div>
+			<div class="our-latest-project">
+				<Container>
+					<Row>
+						<Col md={{ size: 3, offset: 2 }}>
+							<div class="medium-text">Our latest project</div>
+						</Col>
+						<Col md={{ size: 5 }}>
+							<div class="smallest-text">
+								Lorem ipsum dolor sit amet consectetur. Hac ridiculus enim id sit massa in auctor
+								mattis. Nulla ut aliquet odio at sit vitae venenatis fames venenatis. Tortor
+								adipiscing dignissim volutpat egestas et ut nulla justo
+							</div>
+						</Col>
+					</Row>
+					<Row style="margin-top:30px">
+						<Col md={{ size: 4, offset: 2 }}>
+							<img
+								class="latest-project-img-dashboard"
+								src="our_latest_project/food_menu_dashboard.png"
+								alt="project-1"
+							/>
+						</Col>
+						<Col md={{ size: 6 }}>
+							<img
+								class="latest-project-img-phone"
+								src="our_latest_project/food_menu_mobile.png"
+								alt="project-1"
+							/>
+						</Col>
+					</Row>
+					<Row>
+						<Col md={{ size: 3, offset: 2 }}>
+							<div class="medium-text">What ever lah</div>
+						</Col>
+					</Row>
+				</Container>
+			</div>
 		</div>
 	{/if}
 </div>
@@ -91,6 +160,16 @@
 		min-height: 100vh;
 		overflow: hidden;
 		z-index: 3;
+	}
+
+	.page2 {
+		height: 100vh;
+		overflow-y: auto;
+		scroll-behavior: smooth;
+	}
+
+	.page2::-webkit-scrollbar {
+		display: none;
 	}
 
 	.video-wrapper video {
@@ -162,23 +241,40 @@
 		font-family: 'Instrument Serif', serif;
 		font-size: 2.5rem;
 		font-weight: lighter;
+		color: white;
 	}
 	.largest-text {
 		font-family: 'Instrument Serif', serif;
 		font-size: 5rem;
 		font-weight: lighter;
+		color: white;
+	}
+
+	.smaller-text {
+		font-family: 'Instrument Serif', serif;
+		font-size: 1.5rem;
+		font-weight: lighter;
+		color: white;
 	}
 
 	.medium-text {
 		font-family: 'Instrument Serif', serif;
-		font-size: 1.5rem;
+		font-size: 2rem;
 		font-weight: lighter;
+		color: white;
+	}
+
+	.smallest-text {
+		font-family: 'Instrument Serif', serif;
+		font-size: 1rem;
+		font-weight: lighter;
+		color: white;
 	}
 
 	.marquee {
 		width: 100%;
 		overflow: hidden;
-		position:relative
+		position: relative;
 	}
 
 	.customer-logo-container {
@@ -203,5 +299,18 @@
 	.right {
 		right: 0;
 		background: linear-gradient(to left, rgba(0, 0, 0, 0.8), transparent);
+	}
+
+	.our-latest-project {
+		margin-top: 50px;
+	}
+
+	.latest-project-img-dashboard {
+		width: 80%;
+		height: auto;
+	}
+	.latest-project-img-phone {
+		width: 50%;
+		height: 35%;
 	}
 </style>
