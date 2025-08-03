@@ -2,8 +2,9 @@
 	import 'bootstrap/dist/css/bootstrap.min.css';
 	import { Col, Container, Row } from '@sveltestrap/sveltestrap';
 	import '@fontsource/instrument-serif';
+	import "@fontsource/plus-jakarta-sans";
 	import { currentHomePage } from '$lib/stores/HomePageStore.js';
-	import { fly, fade } from 'svelte/transition';
+	import { fly } from 'svelte/transition';
 	import Marquee from 'svelte-fast-marquee';
 	import { onMount, onDestroy, afterUpdate } from 'svelte';
 
@@ -31,7 +32,7 @@
 
 	afterUpdate(() => {
 		if ($currentHomePage === 1 && topSentinel) {
-			observer?.disconnect(); 
+			observer?.disconnect();
 			observer.observe(topSentinel);
 		}
 	});
@@ -53,7 +54,6 @@
 			}
 			return n;
 		});
-
 		setTimeout(() => {
 			isScrolling = false;
 		}, 1000); // 1.5 second delay between scrolls
@@ -88,7 +88,7 @@
 							<div class="smaller-text">Guided by the stars, grounded in purpose</div>
 						</Col>
 					</Row>
-					<Row style="margin-top:50px">
+					<Row style="margin-top:50px;">
 						<Col md={{ size: 8, offset: 2 }}>
 							<div class="marquee">
 								<div class="overlay left"></div>
@@ -121,7 +121,7 @@
 							</div>
 						</Col>
 					</Row>
-					<Row style="margin-top:30px">
+					<Row style="margin-top:30px; height:200px; overflow: hidden;">
 						<Col md={{ size: 4, offset: 2 }}>
 							<img
 								class="latest-project-img-dashboard"
@@ -137,9 +137,56 @@
 							/>
 						</Col>
 					</Row>
-					<Row>
+					<Row style="margin-top:15px">
 						<Col md={{ size: 3, offset: 2 }}>
 							<div class="medium-text">What ever lah</div>
+						</Col>
+					</Row>
+					<Row style="margin-top:10px">
+						<Col md={{ offset: 2 }}>
+							<div style="display: flex; flex-direction: row; gap: 8px; align-items: flex-start;">
+								<div class="latest-project-label">label-1</div>
+								<div class="latest-project-label">label-2</div>
+							</div>
+						</Col>
+					</Row>
+					<Row style="margin-top:30px">
+						<Col md={{ size: 4, offset: 2 }}>
+							<div
+								style="	font-size: medium;
+		font-family: 'Instrument Serif', serif; color:white"
+							>
+								Lorem ipsum dolor sit amet consectetur. Hac ridiculus enim id sit massa in auctor
+								mattis. Nulla ut aliquet odio at sit vitae venenatis fames venenatis. Tortor
+								adipiscing dignissim volutpat egestas et ut nulla justo
+							</div>
+						</Col>
+						<Col></Col>
+					</Row>
+					<Row style="margin-top:50px">
+						<Col md={{ offset: 2 }}>
+							<img
+								style="width:900px; height:450px"
+								src="our_latest_project/T-EUNOIA.jpg"
+								alt="eunoia"
+							/>
+						</Col>
+					</Row>
+					<Row style="margin-top:50px">
+						<Col md={{ offset: 6 }}>
+							<div class="view-all-project">
+								View all project
+								<img src="ooui_arrow-next-ltr.png" alt="icon" style="widht:15px;height:15px" />
+							</div>
+						</Col>
+					</Row>
+				</Container>
+			</div>
+			<div class="customer-review-section">
+				<Container>
+					<Row>
+						<Col md={{ offset: 2 }}>
+							
 						</Col>
 					</Row>
 				</Container>
@@ -312,5 +359,32 @@
 	.latest-project-img-phone {
 		width: 50%;
 		height: 35%;
+	}
+	.latest-project-label {
+		color: white;
+		min-width: 75px;
+		padding: 4px 8px;
+		height: 25px;
+		border-radius: 25px;
+		border: 1px solid #fafafa;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		cursor: pointer;
+		font-size: small;
+		font-family: 'Instrument Serif', serif;
+	}
+
+	.view-all-project {
+		color: white;
+		cursor: pointer;
+		font-size: medium;
+	}
+
+	.customer-review-section{
+		margin-top: 50px;
+		height: 500px;
+		width: 100%;
+		background-color: #fafafa;
 	}
 </style>
