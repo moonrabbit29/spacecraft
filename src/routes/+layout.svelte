@@ -1,8 +1,8 @@
 <script lang="ts">
 	import 'bootstrap/dist/css/bootstrap.min.css';
-	import { fade } from 'svelte/transition';
 	import { Row, Col, Container } from '@sveltestrap/sveltestrap';
 	import { currentHomePage } from '$lib/stores/HomePageStore.js';
+	import "@fontsource/plus-jakarta-sans"
 	import { page } from '$app/state';
 
 	const getCurrentPage = page; // declare $page for rune usage
@@ -32,7 +32,7 @@
 										console.log('active_tab berubah:', active_tab);
 									}}
 								>
-									Content-1
+									Home
 								</div></Col
 							>
 							<Col
@@ -43,7 +43,7 @@
 										active_tab = 2;
 									}}
 								>
-									Content-2
+									Blog
 								</div></Col
 							>
 							<Col
@@ -54,7 +54,7 @@
 										active_tab = 3;
 									}}
 								>
-									Content-3
+									Portofolio
 								</div></Col
 							>
 						</Row>
@@ -62,9 +62,9 @@
 				</div>
 			</Col>
 			<Col xs="3" class="d-flex justify-content-end align-items-center">
-				<div class="contact-us-nav-bar">
-					<p>Contact Us</p>
-					<img src="rocket-contact-us.png" alt="icon" class="icon" />
+				<div class="start-a-project-nav-bar">
+					<p>Start a Project</p>
+					<img src="icons/start-a-project-arrow.png" alt="icon" class="icon" />
 				</div>
 			</Col>
 		</Row>
@@ -106,19 +106,22 @@
 		color: black;
 	}
 
-	.contact-us-nav-bar {
+	.start-a-project-nav-bar {
 		width: 150px;
 		height: 30px;
 		background-color: white;
 		border-radius: 25px;
 		display: flex;
 		align-items: center;
-		gap: 1rem;
+		gap: 0.5rem;
 		padding-left: 12px;
+		
 	}
-	.contact-us-nav-bar p {
-		margin-top: 12px;
-		font-size: medium;
+	.start-a-project-nav-bar p {
+		margin-top: 15px;
+		margin-left: 5px;
+		font-size: small;
+		font-family: 'Plus Jakarta Sans', sans-serif;
 	}
 	.icon {
 		width: 30px;
