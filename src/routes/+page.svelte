@@ -7,48 +7,112 @@
 	import '@fontsource/plus-jakarta-sans/400.css';
 	import '@fontsource/instrument-serif';
 	import { currentHomePage } from '$lib/stores/HomePageStore.js';
-	import { fly } from 'svelte/transition';
+	import { fly, fade } from 'svelte/transition';
 	import Marquee from 'svelte-fast-marquee';
-	import { onMount, onDestroy, afterUpdate } from 'svelte';
+	import { onMount, onDestroy, tick } from 'svelte';
+	import { browser } from '$app/environment';
 
 	let isScrolling = false;
 	let listOfPartner = ['customer_list/tbd-1.png', 'customer_list/tbd-2.png'];
 	let isAtTopPage2 = false;
-	let topSentinel: HTMLDivElement;
+	let isAtBtmPage1 = false;
+	let topPage2Sentinel: HTMLDivElement;
+	let bottomPage1Sentinel: HTMLDivElement;
 	let observer: IntersectionObserver;
+	$: handlePageChange($currentHomePage);
+	let lastPage: number | null = null;
+	let transitionDuration = 1000;
+
+	const services = [
+		{
+			title: 'Web Development',
+			desc: 'From front-end to back-end, we engineer powerful systems—solid as a space station and built to handle any mission. ',
+			icon: 'icons/rocket-with-launchpad.png'
+		},
+		{
+			title: 'Website Design',
+			desc: 'Launch your brand into the digital universe with sleek, modern websites that orbit around user experience and adaptability.',
+			icon: 'icons/website-design-logo.svg'
+		},
+		{
+			title: 'Mobile App Design',
+			desc: 'Powerful, responsive apps engineered like spacecraft—built for speed, precision, and exploration on any device.',
+			icon: 'icons/mobile-app-design-logo.svg'
+		},
+		{
+			title: 'Digital Marketing',
+			desc: 'Fuel your growth with stellar strategies that expand your reach, ignite engagement, and propel your brand across the digital cosmos.',
+			icon: 'icons/digital-marketing-logo.svg'
+		}
+	];
+	let serviceCarActive = -1;
+	let hovered = -1;
+
+	function selectServiceCard(i: number) {
+		console.log('i: ' + i);
+		serviceCarActive = i;
+		console.log('service car active : ' + serviceCarActive);
+	}
+
+	function observeAll() {
+		if (topPage2Sentinel && $currentHomePage === 1) observer.observe(topPage2Sentinel);
+		if (bottomPage1Sentinel && $currentHomePage === 0) observer.observe(bottomPage1Sentinel);
+	}
 
 	onMount(() => {
+		if (!browser) return;
 		observer = new IntersectionObserver(
-			([entry]) => {
-				isAtTopPage2 = entry.isIntersecting;
-				console.log(isAtTopPage2);
+			(entries) => {
+				entries.forEach((entry) => {
+					if (entry.target === topPage2Sentinel) {
+						isAtTopPage2 = entry.isIntersecting;
+					}
+					if (entry.target === bottomPage1Sentinel) {
+						isAtBtmPage1 = entry.isIntersecting;
+					}
+				});
+				console.log({ isAtTopPage2, isAtBtmPage1 });
 			},
-			{ threshold: 1 }
-		); // 100% visible
-
-		if (topSentinel) observer.observe(topSentinel);
+			{ threshold: 0 }
+		);
+		observeAll();
 	});
 
 	onDestroy(() => {
-		if (topSentinel) observer.unobserve(topSentinel);
+		if (!browser) return;
+		observer?.disconnect();
 	});
 
-	afterUpdate(() => {
-		if ($currentHomePage === 1 && topSentinel) {
-			observer?.disconnect();
-			observer.observe(topSentinel);
+	async function handlePageChange(page: number) {
+		await tick();
+		if (!observer) return;
+		if (page === lastPage) return;
+		if (page !== 0) {
+			isAtBtmPage1 = false;
 		}
-	});
+		if (page !== 1) {
+			isAtTopPage2 = false;
+		}
+		lastPage = page;
+		observer.disconnect();
+		await tick();
+		observeAll();
+	}
 
 	function handleScroll(event: WheelEvent) {
+		console.log('debug current home page : ' + $currentHomePage);
+		console.log('debug is scrolling : ' + isScrolling);
+
 		if (isScrolling) {
 			event.preventDefault();
 			return;
 		}
-		const delay = $currentHomePage === 0 ? 1000 : 0;
+		const delay = $currentHomePage === 0 ? transitionDuration : 0;
 		isScrolling = true;
 		currentHomePage.update((n) => {
-			if (event.deltaY > 0 && n < 1) {
+			const previousValue = n;
+			if (event.deltaY > 0 && isAtBtmPage1) {
+				console.log('Should Change page');
 				event.preventDefault();
 				return n + 1;
 			}
@@ -56,6 +120,8 @@
 				event.preventDefault();
 				return n - 1;
 			}
+
+			if (n > 2) n = previousValue;
 			return n;
 		});
 		setTimeout(() => {
@@ -92,7 +158,7 @@
 
 <div class="home-page" on:wheel={handleScroll}>
 	{#if $currentHomePage === 0}
-		<div class="video-wrapper" transition:fly={{ duration: 1000 }}>
+		<div class="video-wrapper" transition:fly={{ duration: transitionDuration }}>
 			<video src="animated waves.mp4" autoplay muted loop playsinline preload="auto"></video>
 			<div class="video-overlay"></div>
 			<div class="hero-content">
@@ -102,27 +168,28 @@
 							A NEW STEP <em style="text-decoration: underline;">into</em>
 						</div></Row
 					>
-					<Row><div class="largest-text">WHAT'S POSSIBLE.</div></Row>
+					<Row><div class="largest-text" bind:this={bottomPage1Sentinel}>WHAT'S POSSIBLE.</div></Row
+					>
 					<Row class="d-flex justify-content-center">
 						<div class="start-project-btn">
 							<p>Explore Our Journey</p>
-							<img src="icons/White Rocket Icon.png" alt="icon" class="icon" />
+							<img src="icons/White Rocket Icon.png" alt="icon" class="icon-journey" />
 						</div>
 					</Row>
 				</Container>
 			</div>
 		</div>
-	{:else}
+	{:else if $currentHomePage === 1}
 		<div class="page2">
-			<div style="height: 50px;" bind:this={topSentinel}></div>
+			<div style="height: 50px;" bind:this={topPage2Sentinel}></div>
 			<div class="client-list">
 				<Container>
 					<Row>
 						<Col class="d-flex justify-content-center">
 							<div
 								style="font-family: 'Instrument Serif', serif;
-									   font-size: 1.75rem;
-									   font-weight: lighter;
+									   font-size: 2rem;
+									   font-weight: 400;
 									   color: white;"
 							>
 								Guided by the stars, grounded in purpose
@@ -152,12 +219,17 @@
 				<Container>
 					<Row>
 						<Col md={{ size: 3, offset: 2 }}>
-							<div class="medium-text-jakarta" style="font-weight:bold">Our latest project</div>
+							<div
+								style="font-size: 34px;
+								font-family: 'Instrument Serif', serif; color:white"
+							>
+								Our latest project
+							</div>
 						</Col>
 						<Col md={{ size: 5 }}>
 							<div
 								style="font-family: 'Plus Jakarta Sans', serif;
-									   font-size: 0.75rem;
+									   font-size: 15px;
 									   font-weight: 100;
 									   color: white;"
 							>
@@ -218,13 +290,199 @@
 							/>
 						</Col>
 					</Row>
-					<Row style="margin-top:50px">
+					<Row style="margin-top:50px;">
 						<Col md={{ offset: 5 }}>
 							<div class="view-all-project">
 								View all project
 								<img src="ooui_arrow-next-ltr.png" alt="icon" style="widht:15px;height:15px" />
 							</div>
 						</Col>
+					</Row>
+				</Container>
+				<div style="height: 40px;"></div>
+			</div>
+			<!-- New section biar rapi -->
+			<div style="height:100px"></div>
+			<div class="our-intro">
+				<Container>
+					<Row class="mb-5 d-flex align-items-center">
+						<Col md={{ offset: 2, size: 3 }}>
+							<div
+								style="font-size: 34px;
+								font-family: 'Instrument Serif', serif; color:white"
+							>
+								Introducing ourselves
+							</div>
+						</Col>
+						<Col md={{ size: 5 }}>
+							<div
+								style="font-size: 12px;
+				font-family: 'Plus Jakarta Sans', sans-serif; color:white"
+							>
+								We help businesses from small startups to large enterprises harness the power of
+								design like mission control, improving communication with their users and launching
+								product and service sales into a higher orbit.
+							</div>
+						</Col>
+					</Row>
+					<Row class="mb-5 d-flex align-items-center">
+						<Col md={{ offset: 2, size: 3 }}>
+							<div style="height: 40px;"></div>
+						</Col>
+						<Col md={{ size: 5 }}>
+							<Container class="px-0">
+								<Row>
+									<Col>
+										<Container class="px-0">
+											<Row>
+												<Col>
+													<div
+														style="font-size: 36px;
+				font-family: 'Plus Jakarta Sans', sans-serif; color:white; font-weight:700"
+													>
+														10+
+													</div></Col
+												>
+											</Row>
+											<Row>
+												<Col>
+													<div
+														style="font-size: 10px;
+				font-family: 'Plus Jakarta Sans', sans-serif; color:white; font-weight:400"
+													>
+														Missions completed across digital galaxies
+													</div></Col
+												>
+											</Row>
+										</Container>
+									</Col>
+									<Col>
+										<Container class="px-0">
+											<Row>
+												<Col>
+													<div
+														style="font-size: 36px;
+				font-family: 'Plus Jakarta Sans', sans-serif; color:white; font-weight:700"
+													>
+														24+
+													</div></Col
+												>
+											</Row>
+											<Row>
+												<Col>
+													<div
+														style="font-size: 10px;
+				font-family: 'Plus Jakarta Sans', sans-serif; color:white; font-weight:400"
+													>
+														Stellar visuals launched into the stratosphere
+													</div></Col
+												>
+											</Row>
+										</Container>
+									</Col>
+									<Col>
+										<Container class="px-0">
+											<Row>
+												<Col>
+													<div
+														style="font-size: 36px;
+				font-family: 'Plus Jakarta Sans', sans-serif; color:white; font-weight:700"
+													>
+														9+
+													</div></Col
+												>
+											</Row>
+											<Row>
+												<Col>
+													<div
+														style="font-size: 10px;
+				font-family: 'Plus Jakarta Sans', sans-serif; color:white; font-weight:400"
+													>
+														UX hours logged in zero-gravity focus
+													</div></Col
+												>
+											</Row>
+										</Container>
+									</Col>
+									<Col>
+										<Container class="px-0">
+											<Row>
+												<Col>
+													<div
+														style="font-size: 36px;
+				font-family: 'Plus Jakarta Sans', sans-serif; color:white; font-weight:700"
+													>
+														100+
+													</div></Col
+												>
+											</Row>
+											<Row>
+												<Col>
+													<div
+														style="font-size: 10px;
+				font-family: 'Plus Jakarta Sans', sans-serif; color:white; font-weight:400"
+													>
+														Users reached across the digital universe
+													</div></Col
+												>
+											</Row>
+										</Container></Col
+									>
+								</Row>
+							</Container>
+						</Col>
+					</Row>
+					<Row class="mb-4">
+						<Col md={{ offset: 2, size: 8 }}>
+							<hr style="border: none; height: 2px; background: white;" />
+						</Col>
+					</Row>
+					<Row>
+						{#each services as s, i}
+							<Col
+								md={{ offset: i === 0 ? 2 : 0, size: 2 }}
+								class="ps-3 pe-3 overflow-auto"
+								style="cursor: pointer;"
+								fluid
+							>
+								<Container
+									style="background-color: {serviceCarActive === i
+										? 'white'
+										: hovered === i
+											? 'rgba(252, 252, 252, 0.12)'
+											: 'black'}; padding-top:10px; padding-bottom:10px;  height:250px"
+								>
+									{#if serviceCarActive === i}
+										<Row style="margin-bottom:20px">
+											<img class="icon-service" src={s.icon} alt="" />
+										</Row>
+									{/if}
+									<Row style="margin-bottom:15px">
+										<div
+											on:click={() => {
+												selectServiceCard(i);
+											}}
+											style="font-size: 20px;
+				font-family: 'Plus Jakarta Sans', sans-serif; color: {serviceCarActive === i
+												? 'black'
+												: 'white'}; font-weight:700"
+											on:mouseenter={() => (hovered = i)}
+											on:mouseleave={() => (hovered = -1)}
+										>
+											{s.title}
+										</div>
+									</Row>
+									<Row>
+										<div
+											style="font-size: 10px;
+				font-family: 'Plus Jakarta Sans', sans-serif; color: {serviceCarActive === i ? 'black' : 'white'};"
+										>
+											{s.desc}
+										</div>
+									</Row>
+								</Container>
+							</Col>
+						{/each}
 					</Row>
 				</Container>
 			</div>
@@ -251,9 +509,19 @@
 								</div>
 							</div>
 						</Col>
-						<Col style="display: flex; flex-direction: row; gap: 1rem; justify-content:center; align-items:center">
-							<img class="review-arrow-left" src="review/review-arrow-left-bold.png" alt="review-arrow"/>
-							<img class="review-arrow-right" src="review/review-arrow-right-bold.png" alt="review-arrow"/>
+						<Col
+							style="display: flex; flex-direction: row; gap: 1rem; justify-content:center; align-items:center"
+						>
+							<img
+								class="review-arrow-left"
+								src="review/review-arrow-left-bold.png"
+								alt="review-arrow"
+							/>
+							<img
+								class="review-arrow-right"
+								src="review/review-arrow-right-bold.png"
+								alt="review-arrow"
+							/>
 						</Col>
 					</Row>
 				</Container>
@@ -376,27 +644,28 @@
 
 	.start-project-btn {
 		border-radius: 25px;
-		width: 180px;
+		width: 220px;
 		border: 1px solid #fafafa;
 		font-size: medium;
-		background-color: rgb(0, 0, 0, 0.4);
+		background-color: rgba(0, 0, 0, 0.4);
 		color: white;
 		cursor: pointer;
 		display: flex;
 		align-items: center;
 		gap: 0.75rem;
+		padding-right: 0px;
 	}
 
 	.start-project-btn p {
 		margin-top: 12px;
-		font-weight: normal;
-		font-size: 0.75rem;
+		font-weight: 400;
+		font-size: 1rem;
 		font-family: 'Plus Jakarta Sans', sans-serif;
 	}
 
 	.start-project-btn img {
-		width: 25px;
-		height: 25px;
+		width: 35px;
+		height: 35px;
 	}
 
 	.video-overlay {
@@ -625,7 +894,7 @@
 		display: flex;
 		flex-direction: row;
 	}
-	.review-avatar{
+	.review-avatar {
 		width: 70px;
 		height: 70px;
 	}
@@ -643,10 +912,15 @@
 		font-weight: lighter;
 	}
 	.review-arrow-left,
-	.review-arrow-right{
+	.review-arrow-right {
 		width: 40px;
 		height: 40px;
 		justify-content: center;
 		display: flex;
+	}
+
+	.icon-service {
+		width: 80px;
+		height: 50px;
 	}
 </style>

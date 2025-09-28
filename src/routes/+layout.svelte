@@ -21,7 +21,7 @@
 			</Col>
 			<Col xs="6" class="d-flex justify-content-center align-items-center">
 				<div class="page-selector">
-					<Container fluid class="py-2">
+					<Container fluid class="py-2 px-3">
 						<Row class="justify-content-between align-item-center">
 							<Col>
 								<div
@@ -43,7 +43,7 @@
 										active_tab = 2;
 									}}
 								>
-									Blog
+									StarLog
 								</div></Col
 							>
 							<Col
@@ -54,7 +54,7 @@
 										active_tab = 3;
 									}}
 								>
-									Portofolio
+									Cosmic Journal
 								</div></Col
 							>
 						</Row>
@@ -82,7 +82,7 @@
 		width: 100%;
 	}
 	.page-selector {
-		width: 400px;
+		width: 450px;
 		height: 50px;
 		background-color: rgba(255, 255, 255, 0.12);
 		margin-top: 0.6rem;
@@ -113,14 +113,15 @@
 		border-radius: 25px;
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
+		gap: 0.75rem;
 		padding-left: 12px;
-		
+		cursor: pointer;
 	}
 	.start-a-project-nav-bar p {
 		margin-top: 15px;
 		margin-left: 5px;
 		font-size: small;
+		font-weight: 800;
 		font-family: 'Plus Jakarta Sans', sans-serif;
 	}
 	.icon {
