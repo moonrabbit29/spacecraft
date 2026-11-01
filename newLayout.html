@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SPACECRAFT — Cosmic Journal & Financial Wire</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Cinzel', 'serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            cosmic: {
+              950: '#05070a',
+              900: '#0b0f17',
+              850: '#111723',
+              800: '#161e2e',
+              border: 'rgba(255, 255, 255, 0.08)',
+              glowTeal: '#38ef7d',
+              glowCyan: '#11998e',
+              glowAmber: '#f6d365',
+              glowOrange: '#fda085'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom subtle scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #07090e; }
+    ::-webkit-scrollbar-thumb { background: #1f293d; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #2f3e58; }
+
+    /* Concentric Glowing Rings (matching hero screenshot) */
+    .hero-rings {
+      background: radial-gradient(circle at 50% 65%, rgba(17, 24, 39, 0) 0%, rgba(5, 7, 10, 0.95) 85%);
+    }
+
+    .ring-arc {
+      position: absolute;
+      border-radius: 50%;
+      border-style: solid;
+      transform: translate(-50%, -50%);
+      left: 50%;
+      top: 60%;
+      pointer-events: none;
+    }
+
+    /* Live Ticker Marquee animation */
+    @keyframes tickerSlide {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .ticker-track {
+      display: flex;
+      width: max-content;
+      animation: tickerSlide 35s linear infinite;
+    }
+    .ticker-track:hover {
+      animation-play-state: paused;
+    }
+  </style>
+</head>
+<body class="bg-[#05070A] text-neutral-100 font-sans antialiased selection:bg-amber-500/20 selection:text-amber-200">
+
+  <!-- TOP FLOATING CAPSULE HEADER -->
+  <header class="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 sm:px-8 py-4 transition-all duration-300 backdrop-blur-md bg-[#05070A]/75 border-b border-white/[0.04]">
+    <!-- Brand Logo -->
+    <a href="#" class="flex items-center gap-2 group">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-500/20 to-amber-500/20 border border-white/10 flex items-center justify-center group-hover:border-cyan-400/40 transition-all">
+        <!-- SVG Rocket Icon -->
+        <svg class="w-4 h-4 text-neutral-200 group-hover:text-cyan-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+        </svg>
+      </div>
+      <div class="leading-none tracking-wider">
+        <span class="block text-xs font-black tracking-widest text-neutral-400">SPACE</span>
+        <span class="block text-xs font-black tracking-widest text-neutral-100 -mt-0.5">CRAFT</span>
+      </div>
+    </a>
+
+    <!-- Center Pill Nav (Directly inspired by your screenshot) -->
+    <nav class="flex items-center p-1 bg-white/[0.05] border border-white/10 rounded-full backdrop-blur-xl shadow-2xl shadow-black/50">
+      <button onclick="scrollToSection('hero')" id="nav-home" class="px-5 py-1.5 text-xs font-medium rounded-full transition-all duration-200 text-neutral-400 hover:text-white">
+        Home
+      </button>
+      <button onclick="scrollToSection('journal')" id="nav-journal" class="px-5 py-1.5 text-xs font-semibold rounded-full bg-white text-black shadow-lg shadow-white/10 transition-all duration-200">
+        Cosmic Journal
+      </button>
+      <button onclick="scrollToSection('macro')" id="nav-starlog" class="px-5 py-1.5 text-xs font-medium rounded-full text-neutral-400 hover:text-white transition-all duration-200">
+        StarLog Terminal
+      </button>
+    </nav>
+
+    <!-- Right Utility Actions -->
+    <div class="flex items-center gap-3">
+      <div class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-mono text-emerald-400">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        NYSE OPEN
+      </div>
+      <button onclick="openSignInModal()" id="btn-signin" class="px-4 py-1.5 text-xs font-medium bg-neutral-900 hover:bg-neutral-800 border border-white/10 rounded-full transition-colors text-neutral-300 hover:text-white cursor-pointer">
+        Sign in
+      </button>
+    </div>
+  </header>
+
+  <!-- LIVE MARKET TICKER STRIP -->
+  <aside class="pt-20 pb-2 border-b border-white/[0.06] bg-[#070a0f] overflow-hidden whitespace-nowrap text-xs font-mono select-none">
+    <div class="ticker-track">
+      <!-- Repeated Items for Infinite Seamless Scroll -->
+      <div class="flex items-center gap-8 px-4 text-neutral-400">
+        <span class="flex items-center gap-1.5">
+          <strong class="text-neutral-200">S&P 500</strong> 5,864.67 
+          <span class="text-emerald-400 font-semibold">+0.41%</span>
+        </span>
+        <span class="text-neutral-700">/</span>
+        <span class="flex items-center gap-1.5">
+          <strong class="text-neutral-200">NASDAQ</strong> 18,518.61 
+          <span class="text-rose-400 font-semibold">-0.15%</span>
+        </span>
+        <span class="text-neutral-700">/</span>
+        <span class="flex items-center gap-1.5">
+          <strong class="text-neutral-200">BTC/USD</strong> $68,430.00 
+          <span class="text-emerald-400 font-semibold">+2.18%</span>
+        </span>
+        <span class="text-neutral-700">/</span>
+        <span class="flex items-center gap-1.5">
+          <strong class="text-neutral-200">US 10Y</strong> 4.241% 
+          <span class="text-emerald-400 font-semibold">+1.8 bps</span>
+        </span>
+        <span class="text-neutral-700">/</span>
+        <span class="flex items-center gap-1.5">
+          <strong class="text-neutral-200">BRENT CRUDE</strong> $74.29 
+          <span class="text-rose-400 font-semibold">-0.82%</span>
+        </span>
+        <span class="text-neutral-700">/</span>
+        <span class="flex items-center gap-1.5">
+          <strong class="text-neutral-200">NVDA</strong> $141.54 
+          <span class="text-emerald-400 font-semibold">+3.12%</span>
+        </span>
+      </div>
+      <!-- Duplicate Set for smooth loop -->
+      <div class="flex items-center gap-8 px-4 text-neutral-400" aria-hidden="true">
+        <span class="flex items-center gap-1.5">
+          <strong class="text-neutral-200">S&P 500</strong> 5,864.67 
+          <span class="text-emerald-400 font-semibold">+0.41%</span>
+        </span>
+        <span class="text-neutral-700">/</span>
+        <span class="flex items-center gap-1.5">
+          <strong class="text-neutral-200">NASDAQ</strong> 18,518.61 
+          <span class="text-rose-400 font-semibold">-0.15%</span>
+        </span>
+        <span class="flex items-center gap-1.5">
+          <strong class="text-neutral-200">BTC/USD</strong> $68,430.00 
+          <span class="text-emerald-400 font-semibold">+2.18%</span>
+        </span>
+        <span class="text-neutral-700">/</span>
+        <span class="flex items-center gap-1.5">
+          <strong class="text-neutral-200">US 10Y</strong> 4.241% 
+          <span class="text-emerald-400 font-semibold">+1.8 bps</span>
+        </span>
+        <span class="text-neutral-700">/</span>
+        <span class="flex items-center gap-1.5">
+          <strong class="text-neutral-200">BRENT CRUDE</strong> $74.29 
+          <span class="text-rose-400 font-semibold">-0.82%</span>
+        </span>
+        <span class="text-neutral-700">/</span>
+        <span class="flex items-center gap-1.5">
+          <strong class="text-neutral-200">NVDA</strong> $141.54 
+          <span class="text-emerald-400 font-semibold">+3.12%</span>
+        </span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- HERO SECTION (Preserving your exact visual identity) -->
+  <section id="hero" class="relative min-h-[75vh] flex flex-col items-center justify-center overflow-hidden px-4 text-center">
+    <!-- Concentric Light Arcs / 3D Gateway Effect -->
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+      <!-- Arc 1 (Cyan outermost) -->
+      <div class="ring-arc w-[820px] h-[820px] border-[2.5px] border-cyan-400/40 shadow-[0_0_60px_rgba(34,211,238,0.2)]"></div>
+      <!-- Arc 2 (Teal) -->
+      <div class="ring-arc w-[660px] h-[660px] border-[2px] border-teal-300/35 shadow-[0_0_40px_rgba(45,212,191,0.2)]"></div>
+      <!-- Arc 3 (Golden Amber) -->
+      <div class="ring-arc w-[500px] h-[500px] border-[3px] border-amber-400/50 shadow-[0_0_50px_rgba(251,191,36,0.3)]"></div>
+      <!-- Arc 4 (Bright Warm Center) -->
+      <div class="ring-arc w-[340px] h-[340px] border-[2px] border-amber-200/60 shadow-[0_0_40px_rgba(253,230,138,0.4)]"></div>
+      <!-- Ground horizon glow -->
+      <div class="absolute bottom-0 w-full h-48 bg-gradient-to-t from-[#05070A] via-[#05070A]/80 to-transparent"></div>
+    </div>
+
+    <!-- Hero Content -->
+    <div class="relative z-10 max-w-3xl mx-auto flex flex-col items-center mt-12">
+      <span class="text-xs uppercase tracking-[0.3em] font-mono text-cyan-400/90 mb-3 bg-cyan-950/40 px-3.5 py-1 rounded-full border border-cyan-500/20 backdrop-blur-sm">
+        Intelligence & Capital Desks
+      </span>
+      <h2 class="text-lg sm:text-2xl font-light tracking-widest text-neutral-300 mb-2 font-display">
+        A NEW STEP <span class="italic font-serif font-normal text-amber-200/90">into</span>
+      </h2>
+      <h1 class="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white mb-8 font-display drop-shadow-[0_10px_25px_rgba(0,0,0,0.8)]">
+        WHAT'S POSSIBLE.
+      </h1>
+
+      <!-- CTA Pill directly bridging to feed -->
+      <button onclick="scrollToSection('journal')" class="group flex items-center gap-3 px-6 py-3 rounded-full bg-black/60 hover:bg-white text-white hover:text-black border border-white/20 hover:border-white transition-all duration-300 shadow-xl backdrop-blur-lg">
+        <span class="text-xs sm:text-sm font-semibold tracking-wider uppercase">Explore Daily Journal</span>
+        <span class="w-6 h-6 rounded-full bg-white text-black group-hover:bg-black group-hover:text-white flex items-center justify-center transition-all">
+          <svg class="w-3.5 h-3.5 transform group-hover:translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          </svg>
+        </span>
+      </button>
+    </div>
+  </section>
+
+  <!-- MAIN ARTICLE & NEWS FEED SECTION -->
+  <main id="journal" class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 pt-12 pb-24">
+    
+    <!-- Top Filter & Search Bar Container -->
+    <div class="space-y-4 mb-8">
+      
+      <!-- Reading State Tabs (All / Live / Deep Dives / Saved) -->
+      <div class="flex items-center justify-between border-b border-white/[0.08] pb-3 text-sm">
+        <div class="flex items-center gap-6">
+          <button onclick="switchTab(this, 'all')" class="tab-btn font-semibold text-white border-b-2 border-amber-400 pb-3 -mb-3 transition-colors">
+            Live Stream
+          </button>
+          <button onclick="switchTab(this, 'analysis')" class="tab-btn font-medium text-neutral-400 hover:text-neutral-200 transition-colors pb-3 -mb-3">
+            Deep Analysis
+          </button>
+          <button onclick="switchTab(this, 'earnings')" class="tab-btn font-medium text-neutral-400 hover:text-neutral-200 transition-colors pb-3 -mb-3">
+            Earnings & Filings
+          </button>
+          <button onclick="switchTab(this, 'saved')" class="tab-btn font-medium text-neutral-400 hover:text-neutral-200 transition-colors pb-3 -mb-3 flex items-center gap-1.5">
+            Watchlist <span id="watchlist-count" class="text-[10px] bg-white/10 px-1.5 py-0.2 rounded-full font-mono">2</span>
+          </button>
+        </div>
+        
+        <div class="flex items-center gap-2 text-neutral-400">
+          <button class="p-1.5 hover:text-white rounded-lg hover:bg-white/5 transition-colors" title="Customize Feed Settings">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/><circle cx="5" cy="12" r="2"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Search Input with glowing focus -->
+      <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        <input 
+          id="post-search" 
+          type="text" 
+          oninput="handleSearch(this.value)"
+          placeholder="Search macro topics, tickers ($NVDA, $SPY), or Fed policy..." 
+          class="w-full bg-[#0d121c] border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-neutral-200 placeholder-neutral-500 focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/40 transition-all font-sans"
+        />
+        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+          <kbd class="text-[10px] font-mono text-neutral-500 bg-white/5 px-1.5 py-0.5 rounded border border-white/10">⌘K</kbd>
+        </div>
+      </div>
+
+      <!-- Asset Class Filter Chips (Level 1) -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs no-scrollbar">
+        <button onclick="filterCategory('all', this)" class="cat-pill px-3.5 py-1.5 rounded-full font-medium transition-all bg-white text-black font-semibold shadow-md shadow-white/5">
+          All Sectors
+        </button>
+        <button onclick="filterCategory('macro', this)" class="cat-pill px-3.5 py-1.5 rounded-full font-medium transition-all bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border border-white/5">
+          Macro & Rates
+        </button>
+        <button onclick="filterCategory('equities', this)" class="cat-pill px-3.5 py-1.5 rounded-full font-medium transition-all bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border border-white/5">
+          Equities
+        </button>
+        <button onclick="filterCategory('crypto', this)" class="cat-pill px-3.5 py-1.5 rounded-full font-medium transition-all bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border border-white/5">
+          Digital Assets
+        </button>
+        <button onclick="filterCategory('energy', this)" class="cat-pill px-3.5 py-1.5 rounded-full font-medium transition-all bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border border-white/5">
+          Energy & Metals
+        </button>
+        <button onclick="filterCategory('venture', this)" class="cat-pill px-3.5 py-1.5 rounded-full font-medium transition-all bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border border-white/5">
+          AI & Tech Capex
+        </button>
+      </div>
+
+      <!-- Sources Filter Bar (Level 2) -->
+      <div class="flex items-center gap-2 text-xs overflow-x-auto pb-1 text-neutral-400">
+        <span class="text-[11px] font-mono uppercase tracking-wider text-neutral-500 mr-1">Sources:</span>
+        <button onclick="filterSource('all', this)" class="src-pill px-2.5 py-1 rounded-lg bg-white/10 text-neutral-200 border border-white/10">
+          All Desks
+        </button>
+        <button onclick="filterSource('sec', this)" class="src-pill px-2.5 py-1 rounded-lg hover:bg-white/5 text-neutral-400 border border-transparent">
+          🏛️ SEC Filings
+        </button>
+        <button onclick="filterSource('reuters', this)" class="src-pill px-2.5 py-1 rounded-lg hover:bg-white/5 text-neutral-400 border border-transparent">
+          ⚡ Bloomberg Wire
+        </button>
+        <button onclick="filterSource('fed', this)" class="src-pill px-2.5 py-1 rounded-lg hover:bg-white/5 text-neutral-400 border border-transparent">
+          🏦 Central Banks
+        </button>
+        <button onclick="filterSource('spacecraft', this)" class="src-pill px-2.5 py-1 rounded-lg hover:bg-white/5 text-neutral-400 border border-transparent">
+          🚀 Cosmic Research
+        </button>
+      </div>
+    </div>
+
+    <!-- ARTICLE CARDS FEED CONTAINER -->
+    <div id="articles-container" class="space-y-4">
+      
+      <!-- Article 1: High-Impact Macro -->
+      <article data-category="macro" data-source="fed" class="post-card group p-5 rounded-2xl bg-[#090d15] hover:bg-[#0c121d] border border-white/[0.06] hover:border-cyan-500/30 transition-all duration-300">
+        <div class="flex items-center justify-between text-xs mb-2">
+          <div class="flex items-center gap-2">
+            <span class="flex h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee]"></span>
+            <span class="font-semibold text-neutral-300">Federal Reserve Dispatch</span>
+            <span class="text-neutral-600">·</span>
+            <time class="font-mono text-neutral-400">14m ago</time>
+            <span class="text-neutral-600">·</span>
+            <span class="text-[10px] tracking-wide uppercase px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20 font-mono">High Volatility</span>
+          </div>
+          
+          <div class="flex items-center gap-3">
+            <!-- AI Summary Toggle -->
+            <button onclick="toggleSummary('summary-1')" class="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-amber-300 transition-colors">
+              <svg class="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L15 8L21 9L17 14L18 20L12 17L6 20L7 14L3 9L9 8L12 2Z"/></svg>
+              <span>Impact Analysis</span>
+            </button>
+            <button onclick="toggleWatch(this)" class="text-neutral-500 hover:text-white transition-colors" title="Bookmark">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <h3 class="text-lg font-semibold text-neutral-100 group-hover:text-cyan-200 transition-colors mb-2 leading-snug">
+          FOMC Signals Terminal Rate Plateau as PCE Price Index Decelerates to 2.4% Annual Run-Rate
+        </h3>
+        
+        <p class="text-sm text-neutral-400 line-clamp-2 mb-4 leading-relaxed font-light">
+          Chair notes core disinflation is broadening across service sectors. Balance sheet run-off pace will maintain current trajectory through next quarter as swap markets reprice rate cut odds to 68%.
+        </p>
+
+        <!-- AI Summary Collapsible Drawer -->
+        <div id="summary-1" class="hidden my-3 p-3.5 rounded-xl bg-[#0e1624] border border-amber-400/20 text-xs text-neutral-300 font-sans space-y-2">
+          <div class="flex items-center gap-1.5 font-semibold text-amber-300 font-mono text-[11px] uppercase tracking-wider">
+            <span>✨ AI Market Impact Synthesis</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-neutral-300 leading-relaxed">
+            <li><strong>Bonds:</strong> 2-year Treasury yields pulled back 6 bps to 3.98% as traders price lower likelihood of near-term hikes.</li>
+            <li><strong>Equities:</strong> Growth and long-duration tech valuations benefit directly from multiple expansion.</li>
+            <li><strong>Action:</strong> Monitor tomorrow’s non-farm payroll revisions for confirmation of labor moderation.</li>
+          </ul>
+        </div>
+
+        <!-- Card Footer: Ticker tags & read stats -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/[0.04]">
+          <div class="flex items-center gap-2 font-mono text-xs">
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              $SPY +0.64%
+            </span>
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-rose-500/10 text-rose-400 border border-rose-500/20">
+              $DXY -0.38%
+            </span>
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-neutral-800 text-neutral-300 border border-white/5">
+              US10Y 4.24%
+            </span>
+          </div>
+          <span class="text-xs text-neutral-500 font-mono">4 min read · Full FOMC Transcript Attached</span>
+        </div>
+      </article>
+
+      <!-- Article 2: Tech / Semis Earnings -->
+      <article data-category="equities" data-source="spacecraft" class="post-card group p-5 rounded-2xl bg-[#090d15] hover:bg-[#0c121d] border border-white/[0.06] hover:border-cyan-500/30 transition-all duration-300">
+        <div class="flex items-center justify-between text-xs mb-2">
+          <div class="flex items-center gap-2">
+            <span class="flex h-2 w-2 rounded-full bg-emerald-400"></span>
+            <span class="font-semibold text-neutral-300">SpaceCraft Research Desk</span>
+            <span class="text-neutral-600">·</span>
+            <time class="font-mono text-neutral-400">42m ago</time>
+          </div>
+          <div class="flex items-center gap-3">
+            <button onclick="toggleSummary('summary-2')" class="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-amber-300 transition-colors">
+              <svg class="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L15 8L21 9L17 14L18 20L12 17L6 20L7 14L3 9L9 8L12 2Z"/></svg>
+              <span>Impact Analysis</span>
+            </button>
+            <button onclick="toggleWatch(this)" class="text-amber-400 hover:text-white transition-colors" title="Saved">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <h3 class="text-lg font-semibold text-neutral-100 group-hover:text-cyan-200 transition-colors mb-2 leading-snug">
+          Hyperscaler AI Capex Run-Rate Surpasses $200B: Margin Breakdown for Semiconductor Suppliers
+        </h3>
+        
+        <p class="text-sm text-neutral-400 line-clamp-2 mb-4 leading-relaxed font-light">
+          Sec filings from Big Tech reveal accelerated data center build-outs for customized ASIC clusters and liquid-cooled rack architectures, pushing back-end packaging suppliers to near-100% capacity.
+        </p>
+
+        <div id="summary-2" class="hidden my-3 p-3.5 rounded-xl bg-[#0e1624] border border-amber-400/20 text-xs text-neutral-300 font-sans space-y-2">
+          <div class="flex items-center gap-1.5 font-semibold text-amber-300 font-mono text-[11px] uppercase tracking-wider">
+            <span>✨ AI Market Impact Synthesis</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-neutral-300 leading-relaxed">
+            <li><strong>Winners:</strong> Advanced packaging suppliers (TSMC, ASE) and high-bandwidth memory (SK Hynix, Micron).</li>
+            <li><strong>Risk Factor:</strong> Power availability in Northern Virginia and Ireland grids acting as bottleneck.</li>
+          </ul>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/[0.04]">
+          <div class="flex items-center gap-2 font-mono text-xs">
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              $NVDA +3.12%
+            </span>
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              $TSM +2.45%
+            </span>
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-rose-500/10 text-rose-400 border border-rose-500/20">
+              $INTC -1.10%
+            </span>
+          </div>
+          <span class="text-xs text-neutral-500 font-mono">6 min read · Deep Dive</span>
+        </div>
+      </article>
+
+      <!-- Article 3: Digital Assets & Settlement -->
+      <article data-category="crypto" data-source="reuters" class="post-card group p-5 rounded-2xl bg-[#090d15] hover:bg-[#0c121d] border border-white/[0.06] hover:border-cyan-500/30 transition-all duration-300">
+        <div class="flex items-center justify-between text-xs mb-2">
+          <div class="flex items-center gap-2">
+            <span class="flex h-2 w-2 rounded-full bg-indigo-400"></span>
+            <span class="font-semibold text-neutral-300">Global Liquidity Wire</span>
+            <span class="text-neutral-600">·</span>
+            <time class="font-mono text-neutral-400">1h 12m ago</time>
+          </div>
+          <div class="flex items-center gap-3">
+            <button onclick="toggleSummary('summary-3')" class="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-amber-300 transition-colors">
+              <svg class="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L15 8L21 9L17 14L18 20L12 17L6 20L7 14L3 9L9 8L12 2Z"/></svg>
+              <span>Impact Analysis</span>
+            </button>
+            <button onclick="toggleWatch(this)" class="text-neutral-500 hover:text-white transition-colors" title="Bookmark">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <h3 class="text-lg font-semibold text-neutral-100 group-hover:text-cyan-200 transition-colors mb-2 leading-snug">
+          Institutional Tokenized Treasury Funds Cross $2.4B as Tier-1 Banks Pilot On-Chain Repo Settlement
+        </h3>
+        
+        <p class="text-sm text-neutral-400 line-clamp-2 mb-4 leading-relaxed font-light">
+          Major custody banks announce interoperability standards for tokenized US debt obligations, offering 24/7 collateral mobilization and reducing overnight bilateral counterparty risks.
+        </p>
+
+        <div id="summary-3" class="hidden my-3 p-3.5 rounded-xl bg-[#0e1624] border border-amber-400/20 text-xs text-neutral-300 font-sans space-y-2">
+          <div class="flex items-center gap-1.5 font-semibold text-amber-300 font-mono text-[11px] uppercase tracking-wider">
+            <span>✨ AI Market Impact Synthesis</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-neutral-300 leading-relaxed">
+            <li><strong>Liquidity:</strong> Frees trapped intraday capital for multinational trading desks.</li>
+            <li><strong>Adoption:</strong> Public permissionless protocols seeing increased secondary volume for yield-bearing stable assets.</li>
+          </ul>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/[0.04]">
+          <div class="flex items-center gap-2 font-mono text-xs">
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              $BTC +2.18%
+            </span>
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              $ETH +1.74%
+            </span>
+          </div>
+          <span class="text-xs text-neutral-500 font-mono">3 min read</span>
+        </div>
+      </article>
+
+    </div>
+
+    <!-- Empty State for Filters/Search -->
+    <div id="empty-state" class="hidden text-center py-16">
+      <div class="w-12 h-12 rounded-full bg-white/5 border border-white/10 mx-auto flex items-center justify-center text-neutral-400 mb-3">
+        🔍
+      </div>
+      <h4 class="text-base font-semibold text-neutral-200">No matching market dispatches</h4>
+      <p class="text-xs text-neutral-500 mt-1">Try querying different asset tickers (e.g. $NVDA, $SPY) or broad terms.</p>
+    </div>
+
+    <!-- Pagination / Stream status -->
+    <div class="mt-8 pt-6 border-t border-white/[0.08] flex items-center justify-between text-xs text-neutral-400 font-mono">
+      <span>Showing 3 of 48 updates</span>
+      <button class="px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-neutral-200 border border-white/10 transition-colors">
+        Load Older Dispatches ↓
+      </button>
+    </div>
+
+  </main>
+
+  <!-- SIGN IN MODAL (Directly matching reference screenshot) -->
+  <div id="signin-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200 ease-out">
+    <div class="relative w-full max-w-[390px] rounded-[24px] bg-[#14171d] border border-white/[0.09] p-7 shadow-2xl shadow-black/90 transform scale-95 transition-transform duration-200 ease-out text-center" id="modal-card">
+      
+      <!-- Modal Heading -->
+      <h3 class="text-xl font-bold text-neutral-100 text-left mb-2.5">
+        Sign in
+      </h3>
+
+      <!-- Value Proposition Body -->
+      <p class="text-[13.5px] leading-relaxed text-neutral-400 text-left mb-6 font-normal">
+        Follow your custom tickers & market desks, and keep what you've read, annotated, and saved in sync across your devices.
+      </p>
+
+      <!-- Continue with Google Button -->
+      <button onclick="handleGoogleSignIn()" class="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-full bg-white hover:bg-neutral-100 active:scale-[0.98] transition-all text-neutral-900 font-medium text-sm shadow-md mb-3">
+        <!-- Google G logo -->
+        <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.65v3.03h3.88c2.27-2.09 3.665-5.17 3.665-9.12z"/>
+          <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.03c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.13C3.26 21.36 7.33 24 12 24z"/>
+          <path fill="#FBBC05" d="M5.28 14.29c-.25-.72-.38-1.49-.38-2.29s.13-1.57.38-2.29V6.58H1.26C.46 8.17 0 9.97 0 12s.46 3.83 1.26 5.42l4.02-3.13z"/>
+          <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.26 6.58l4.02 3.13c.95-2.83 3.6-4.96 6.72-4.96z"/>
+        </svg>
+        <span>Continue with Google</span>
+      </button>
+
+      <!-- Privacy Disclaimer -->
+      <p class="text-[11.5px] text-neutral-500 mb-5">
+        We only see your name and profile picture.
+      </p>
+
+      <!-- Dismiss "Not now" button -->
+      <button onclick="closeSignInModal()" class="text-xs font-semibold text-neutral-300 hover:text-white transition-colors py-1 px-3">
+        Not now
+      </button>
+
+    </div>
+  </div>
+
+  <!-- INTERACTION JAVASCRIPT -->
+  <script>
+    // Modal Open & Close Functions
+    function openSignInModal() {
+      const modal = document.getElementById('signin-modal');
+      const card = document.getElementById('modal-card');
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      card.classList.remove('scale-95');
+      card.classList.add('scale-100');
+      document.body.classList.add('overflow-hidden');
+    }
+
+    function closeSignInModal() {
+      const modal = document.getElementById('signin-modal');
+      const card = document.getElementById('modal-card');
+      modal.classList.add('opacity-0', 'pointer-events-none');
+      card.classList.remove('scale-100');
+      card.classList.add('scale-95');
+      document.body.classList.remove('overflow-hidden');
+    }
+
+    // Close on clicking backdrop
+    document.getElementById('signin-modal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeSignInModal();
+      }
+    });
+
+    // Close on Escape key press
+    window.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeSignInModal();
+      }
+    });
+
+    // Mock Google sign in feedback
+    function handleGoogleSignIn() {
+      const btn = document.getElementById('btn-signin');
+      btn.innerHTML = `<span class="inline-block w-2 h-2 rounded-full bg-emerald-400 mr-1.5"></span>Portfolio Pro`;
+      closeSignInModal();
+    }
+
+    // Smooth scrolling between hero and journal feed
+    function scrollToSection(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    // Toggle AI Summary drawer
+    function toggleSummary(id) {
+      const drawer = document.getElementById(id);
+      if (drawer) {
+        drawer.classList.toggle('hidden');
+      }
+    }
+
+    // Toggle Watchlist bookmark state
+    function toggleWatch(btn) {
+      const isSaved = btn.getAttribute('data-saved') === 'true';
+      const badge = document.getElementById('watchlist-count');
+      let count = parseInt(badge.innerText, 10);
+
+      if (isSaved) {
+        btn.setAttribute('data-saved', 'false');
+        btn.classList.remove('text-amber-400');
+        btn.classList.add('text-neutral-500');
+        btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>`;
+        badge.innerText = Math.max(0, count - 1);
+      } else {
+        btn.setAttribute('data-saved', 'true');
+        btn.classList.remove('text-neutral-500');
+        btn.classList.add('text-amber-400');
+        btn.innerHTML = `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>`;
+        badge.innerText = count + 1;
+      }
+    }
+
+    // Switch main tabs
+    function switchTab(btn, tab) {
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('font-semibold', 'text-white', 'border-b-2', 'border-amber-400');
+        b.classList.add('font-medium', 'text-neutral-400');
+      });
+      btn.classList.remove('text-neutral-400', 'font-medium');
+      btn.classList.add('font-semibold', 'text-white', 'border-b-2', 'border-amber-400');
+    }
+
+    // Filter categories
+    let currentCategory = 'all';
+    let currentSource = 'all';
+
+    function filterCategory(cat, btn) {
+      currentCategory = cat;
+      document.querySelectorAll('.cat-pill').forEach(b => {
+        b.classList.remove('bg-white', 'text-black', 'font-semibold');
+        b.classList.add('bg-neutral-900', 'text-neutral-300');
+      });
+      btn.classList.remove('bg-neutral-900', 'text-neutral-300');
+      btn.classList.add('bg-white', 'text-black', 'font-semibold');
+      applyFilters();
+    }
+
+    function filterSource(src, btn) {
+      currentSource = src;
+      document.querySelectorAll('.src-pill').forEach(b => {
+        b.classList.remove('bg-white/10', 'text-neutral-200', 'border-white/10');
+        b.classList.add('text-neutral-400', 'border-transparent');
+      });
+      btn.classList.remove('text-neutral-400', 'border-transparent');
+      btn.classList.add('bg-white/10', 'text-neutral-200', 'border-white/10');
+      applyFilters();
+    }
+
+    function handleSearch(query) {
+      applyFilters(query.toLowerCase());
+    }
+
+    function applyFilters(query = '') {
+      const articles = document.querySelectorAll('.post-card');
+      let visibleCount = 0;
+
+      articles.forEach(card => {
+        const catMatch = currentCategory === 'all' || card.getAttribute('data-category') === currentCategory;
+        const srcMatch = currentSource === 'all' || card.getAttribute('data-source') === currentSource;
+        const textContent = card.innerText.toLowerCase();
+        const searchMatch = !query || textContent.includes(query);
+
+        if (catMatch && srcMatch && searchMatch) {
+          card.classList.remove('hidden');
+          visibleCount++;
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+
+      const empty = document.getElementById('empty-state');
+      if (visibleCount === 0) {
+        empty.classList.remove('hidden');
+      } else {
+        empty.classList.add('hidden');
+      }
+    }
+  </script>
+</body>
+</html>
